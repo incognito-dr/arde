@@ -20,7 +20,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 body.ready .ui{opacity:1}
 .m{--m:clamp(22px,3.2vw,56px)}
 .wm{position:absolute;left:var(--m);top:var(--m);width:clamp(70px,6vw,104px);color:var(--red)}
-.tr{position:absolute;right:var(--m);top:var(--m);font-size:clamp(11px,.85vw,14px);letter-spacing:.01em}
+.tr{position:absolute;right:var(--m);top:var(--m);color:inherit;text-decoration:none;pointer-events:auto;cursor:pointer;font-size:clamp(11px,.85vw,14px);letter-spacing:.01em}
 .state{position:absolute;left:var(--m);bottom:var(--m);font-size:clamp(20px,2.1vw,34px);line-height:1;letter-spacing:-.01em}
 .clock{position:absolute;right:var(--m);bottom:var(--m);font-size:clamp(11px,.85vw,14px);font-variant-numeric:tabular-nums}
 .line{position:absolute;left:0;bottom:0;height:2px;background:var(--red);width:0}
@@ -30,6 +30,7 @@ body.ready .ui{opacity:1}
 @keyframes lg{0%{transform:translate(-14px,0);height:4px;opacity:.9}20%{transform:translate(9px,-3px);height:2px;opacity:.35}40%{transform:translate(-5px,2px);height:6px;opacity:1}60%{transform:translate(18px,0);height:1px;opacity:.6}80%{transform:translate(-2px,-1px);height:3px;opacity:1}100%{transform:none;height:2px;opacity:1}}
 @keyframes lga{0%{opacity:.8;transform:translateY(-7px)}25%{opacity:0}50%{opacity:.6;transform:translateY(-14px)}75%{opacity:0}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.grain{animation:none}}
+.tr:hover{opacity:.7}
 </style>
 </head>
 <body>
@@ -37,7 +38,7 @@ body.ready .ui{opacity:1}
 <div class="grain"></div>
 <div class="ui m">
   <div class="wm">{{WM}}</div>
-  <div class="tr">@arde____________</div>
+  <a class="tr" href="https://www.instagram.com/arde____________/" target="_blank" rel="noopener">@arde____________</a>
   <div class="state" id="st">casi.</div>
   <div class="clock" id="clock">00:00</div>
   <div class="line" id="line"></div>
@@ -99,7 +100,7 @@ body.ready .ui{opacity:1}
     var breath=Math.sin(sec*1.05)*.5+.5;
     var flick=Math.random()<.004?.6:1;
     var glow=Math.min(1,sec/2.4)*(.86+.14*breath)*flick;
-    var blur=(16-10*focus)*(S/900)+breath*1.4;   // mas definicion: nunca nitido, pero se lee
+    var blur=(30-14*focus)*(S/900)+breath*2.4;   // desenfocado detras del vidrio: nunca nitido
     light(blur,glow,breath);reeds();progress(sec,dt);
     requestAnimationFrame(frame);
   }
