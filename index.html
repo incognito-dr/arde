@@ -9,8 +9,8 @@ const load=src=>new Promise((ok,no)=>{const im=new Image();im.onload=()=>ok(im);
 const chrome=document.querySelector('.metal-fallback');await chrome.decode();
 await document.fonts.ready;
 const gl=canvas.getContext('webgl',{alpha:false,antialias:false,preserveDrawingBuffer:false,powerPreference:'low-power'});
-const reduced=matchMedia('(prefers-reduced-motion:reduce)'),period=20;
-let paused=reduced.matches,elapsed=0,last=performance.now(),visible=true;
+const reduced=matchMedia('(prefers-reduced-motion:reduce)'),period=12;
+let paused=false,elapsed=0,last=performance.now(),visible=true;
 let mouse=[0,0],aim=[0,0],w=innerWidth,h=innerHeight;
 const clockEl=document.querySelector('.clock');
 function clock(){clockEl.textContent=new Intl.DateTimeFormat('en-GB',{timeZone:'America/Santo_Domingo',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date())}clock();setInterval(clock,10000);
@@ -22,7 +22,7 @@ if(gl){
  varying vec2 uv;
  float noise(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
  void main(){
-  float phase=t*6.28318530718/20.;
+  float phase=t*6.28318530718/12.;
   float mobile=step(res.x/res.y,.9);
   float zoom=1.;
   float cw=max(res.x*2.,res.y*(3000./1331.)*mix(1.4,1.3,mobile))*zoom;
@@ -32,11 +32,13 @@ if(gl){
   vec2 q=(screen-.5)*res/size+focus;
   vec4 plate=texture2D(photo,q);
   float valid=step(0.,q.x)*step(q.x,1.)*step(0.,q.y)*step(q.y,1.);
-  // Exposure changes very gently across the existing photographed metal.
-  // No displacement or per-letter deformation: the original silhouette stays intact.
-  float sweep=sin(phase+q.x*3.2-q.y*1.2+pointer.x*.3);
-  float tone=1.+.035*sweep;
-  vec3 c=plate.rgb*tone;
+  // Moving studio reflections change the metal finish while the artwork stays locked.
+  float luminance=dot(plate.rgb,vec3(.2126,.7152,.0722));
+  float face=smoothstep(.10,.40,luminance)*(1.-smoothstep(.80,.98,luminance));
+  float reflected=phase+q.x*11.+q.y*5.+luminance*.5+pointer.x*.35;
+  float highlight=pow(.5+.5*sin(reflected),7.);
+  float shade=pow(.5+.5*sin(reflected+2.6),3.);
+  vec3 c=plate.rgb+face*(.28*highlight-.14*shade);
   c*=plate.a*valid;
   // Fine, monochromatic film grain, kept off the flat red foreground emblem.
   float frame=floor(t*18.);
@@ -56,10 +58,10 @@ function render(time){if(!gl)return;gl.viewport(0,0,canvas.width,canvas.height);
 function resize(){w=innerWidth;h=innerHeight;const dpr=Math.min(devicePixelRatio,innerWidth<600?1.75:2);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);const mobile=w/h<.9,cw=Math.max(w*2,h*(3000/1331)*(mobile?1.3:1.4)),ch=cw/(3000/1331);render(elapsed)}resize();addEventListener('resize',resize);
 addEventListener('pointermove',e=>{if(reduced.matches)return;aim=[(e.clientX/w-.5)*2,(e.clientY/h-.5)*2]},{passive:true});document.addEventListener('pointerleave',()=>aim=[0,0]);
 const play=document.querySelector('#play');
-function updatePlay(){play.textContent=paused?'REPRODUCIR':'PAUSAR';play.setAttribute('aria-label',paused?'REPRODUCIR ANIMACIÓN':'PAUSAR ANIMACIÓN')}
+function updatePlay(){document.body.dataset.motion=paused?'paused':'playing';play.textContent=paused?'REPRODUCIR':'PAUSAR';play.setAttribute('aria-label',paused?'REPRODUCIR ANIMACIÓN':'PAUSAR ANIMACIÓN')}
 play.onclick=()=>{paused=!paused;updatePlay()};updatePlay();
 addEventListener('keydown',e=>{if(e.code==='KeyP'&&!e.repeat){paused=!paused;updatePlay()}});
-reduced.addEventListener('change',e=>{paused=e.matches;updatePlay()});
+reduced.addEventListener('change',()=>{aim=[0,0]});
 document.addEventListener('visibilitychange',()=>{visible=!document.hidden;last=performance.now()});
 let lastPaint=0;
 function tick(now){requestAnimationFrame(tick);const dt=Math.min((now-last)/1000,.08);last=now;if(!visible)return;
