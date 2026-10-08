@@ -38,7 +38,8 @@ if(gl){
   float reflected=phase+q.x*11.+q.y*5.+luminance*.5+pointer.x*.35;
   float highlight=pow(.5+.5*sin(reflected),7.);
   float shade=pow(.5+.5*sin(reflected+2.6),3.);
-  vec3 c=plate.rgb+face*(.28*highlight-.14*shade);
+  vec3 c=plate.rgb*(1.-face*.32*shade);
+  c+=face*highlight*.92*(vec3(.98)-c);
   c*=plate.a*valid;
   // Fine, monochromatic film grain, kept off the flat red foreground emblem.
   float frame=floor(t*18.);
